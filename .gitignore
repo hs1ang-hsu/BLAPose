@@ -1,0 +1,25 @@
+__pycache__/
+
+# video type
+*.mp4
+*.MOV
+
+# picture
+*.png
+*.jpg
+
+# checkpoint type
+*.bin
+
+# data type
+*.zip
+*.npz
+*.npy
+*.pkl
+*.csv
+*.json
+*.xlsx
+*.txt
+
+# helper
+plotter.py

@@ -1,7 +1,8 @@
 # BLAPose: Enhancing 3D Human Pose Estimation with Bone Length Adjustment
 
-This is the official implementation for the paper:
+This is the official implementation of the ACCV 2024 paper: [Enhancing 3D Human Pose Estimation with Bone Length Adjustment](https://arxiv.org/abs/2410.20731)
 
+<p align="center"> <img src="./src/adjustment.png" width="80%"> </p>
 
 ## Environment
 

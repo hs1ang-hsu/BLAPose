@@ -9,30 +9,6 @@ from utils.bone_utils import *
 from utils.h36m_dataset import Human36mDataset
 from utils.loss import *
 
-# lengths_dict_biGRU
-# lengths_dict_GRU
-# lengths_dict_causal
-
-# python bone_adjust.py --bone data/lengths_dict_causal.npz --causal --pred 3D_prediction/VideoPose3D/prediction.pkl --act 3D_prediction/VideoPose3D/action_dict.pkl
-
-# python bone_adjust.py --bone data/lengths_dict_GRU.npz --pred 3D_prediction/KTPFormer/prediction.pkl --act 3D_prediction/KTPFormer/action_dict.pkl
-# python bone_adjust.py --bone data/lengths_dict_GRU.npz --pred 3D_prediction/STCFormer/prediction.pkl --act 3D_prediction/STCFormer/action_dict.pkl
-# python bone_adjust.py --bone data/lengths_dict_GRU.npz --pred 3D_prediction/PoseFormerV2/prediction.pkl --act 3D_prediction/PoseFormerV2/action_dict.pkl
-
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/VideoPose3D/prediction.pkl --act 3D_prediction/VideoPose3D/action_dict.pkl
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/Anatomy3D/prediction.pkl --act 3D_prediction/Anatomy3D/action_dict.pkl
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/PoseFormer/prediction.pkl --act 3D_prediction/PoseFormer/action_dict.pkl
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/MHFormer/prediction.pkl --act 3D_prediction/MHFormer/action_dict.pkl
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/MixSTE/prediction.pkl --act 3D_prediction/MixSTE/action_dict.pkl
-
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/DiffPose/prediction.pkl --act 3D_prediction/DiffPose/action_dict.pkl 
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/D3DP_H1_K1/prediction.pkl --act 3D_prediction/D3DP_H1_K1/action_dict.pkl 
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/D3DP_H20_K10/prediction.pkl --act 3D_prediction/D3DP_H20_K10/action_dict.pkl 
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/KTPFormer/prediction.pkl --act 3D_prediction/KTPFormer/action_dict.pkl 
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/FinePose/prediction.pkl --act 3D_prediction/FinePose/action_dict.pkl
-
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/STCFormer/prediction.pkl --act 3D_prediction/STCFormer/action_dict.pkl
-# python bone_adjust.py --bone data/lengths_dict_biGRU.npz --pred 3D_prediction/PoseFormerV2/prediction.pkl --act 3D_prediction/PoseFormerV2/action_dict.pkl
 
 def arg_parse():
     parser = argparse.ArgumentParser('Adjusting bone lengths of predicted poses.')
@@ -137,7 +113,6 @@ def evalaute(actions_dict, pred_pose_list, bone_length_dict, dataset, f, args):
                 pred_pose = torch.from_numpy(pred_pose_list[idx]) # (N, 17, 3)
                 # length_inconsistency(pred_pose)
                 # exit()
-                # data_reformat.append(pred_pose.numpy())
                 
                 if args.causal:
                     bone_length = torch.from_numpy(bone_length_dict[subject][action][i]) # (N, 16)
@@ -146,7 +121,6 @@ def evalaute(actions_dict, pred_pose_list, bone_length_dict, dataset, f, args):
                         bone_length = bone_length[f-1:f]
                 else:
                     bone_length = torch.from_numpy(bone_length_dict[subject][action][i]).view(1,16) # (1, 16)
-                # bone_length = torch.from_numpy(bone_length_list[idx]).view(1,16) # Anatomy length (1, 16) 
                 
                 
                 # non-adjusted error
@@ -164,7 +138,6 @@ def evalaute(actions_dict, pred_pose_list, bone_length_dict, dataset, f, args):
                     error_lengths_adjusted = torch.mean(torch.abs(gt_lengths - bone_length), dim=0).numpy()
                 else:
                     pred_pose_adjusted = bones2poses_torch(predicted_dir.unsqueeze(0), bone_length).squeeze()
-                    # bone_length = torch.mean(predicted_lengths, dim=0)
                     error_lengths_adjusted = torch.mean(torch.abs(gt_lengths[:1] - bone_length), dim=0).numpy()
                 error_adjusted = mpjpe(pred_pose_adjusted, gt_pose).item()
                 error_adjusted_procrustes = p_mpjpe(pred_pose_adjusted.numpy(), gt_pose.numpy())
@@ -234,11 +207,6 @@ def evalaute(actions_dict, pred_pose_list, bone_length_dict, dataset, f, args):
         print('Velocity Error (MPJVE):', round(np.mean(error_adjusted_mpjve_avg), 1), 'mm')
         print('Adjusted Length Error action-wise average:', round(np.mean(error_length_adjusted_avg), 1), 'mm')
         
-        # bones = [0,1,2,6,7,8,9,10,11,12]
-        # print("bone:", ",".join([str(round(e,1)) for e in np.mean(error_length_adjusted_avg, axis=0)[bones]]))
-        # print('S9 error:', result_sub['S9']['error'] / result_sub['S9']['N'])
-        # print('S11 error:', result_sub['S11']['error'] / result_sub['S11']['N'])
-        
         result = np.array(result)
         result = result[result[:, 0].argsort()]
         result[[-2,-1]] = result[[-1,-2]] # swap Walk and WalkTogether
@@ -257,7 +225,6 @@ if __name__ == '__main__':
     actions_dict = pickle.load(open(args.act, 'rb'))
     pred_pose_list = pickle.load(open(args.pred, 'rb'))
     bone_length_dict = np.load(args.bone, allow_pickle=True)['lengths'].item()
-    # bone_length_list = pickle.load(open(args.bone, 'rb'))
     dataset = load_gt(args.gt)
     
     if args.plot_frame_error:

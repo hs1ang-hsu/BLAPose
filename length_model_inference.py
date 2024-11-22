@@ -7,7 +7,7 @@ from tqdm import tqdm
 from main import load_dataset, fetch
 from utils.generators import UnchunkedGeneratorBoneLengths
 from utils.bone_utils import bone_symmetry
-from utils.model_length import BoneLengthModel 
+from utils.model_length import BoneLengthModel
 
 ckpt_root = 'checkpoint'
 dataset_root = 'data'
@@ -58,6 +58,34 @@ def load_model(chk_path, args):
     if torch.cuda.is_available():
         model = model.cuda()
     return model
+
+def inference_wild(model, inputs_2d, causal=False):
+    # inputs_2d.shape = (N, F, 17, 2)
+    with torch.no_grad():
+        model.eval()
+        
+        if torch.cuda.is_available():
+            inputs_2d = inputs_2d.cuda()
+        
+        # Predict lengths
+        if causal:
+            bone_lengths = []
+            h_0 = [model.init_hidden(inputs_2d.shape[0]), model.init_hidden(inputs_2d.shape[0])]
+            for i in range(inputs_2d.shape[1]):
+                predicted_bone_len, h_0 = model(inputs_2d[:,i:i+1], h_0, causal=True)
+                for p in bone_symmetry:
+                    predicted_bone_len[:,p] = predicted_bone_len[:,p].mean(dim=1)[:,None]
+                bone_lengths.append(predicted_bone_len[0].cpu().numpy())
+                
+                h_0[0] = h_0[0].unsqueeze(1)
+                h_0[1] = h_0[1].unsqueeze(1)
+            pred_lengths = np.mean(np.array(bone_lengths), axis=0)
+        else:
+            predicted_bone_len = model(inputs_2d)
+            for p in bone_symmetry:
+                predicted_bone_len[:,p] = predicted_bone_len[:,p].mean(dim=1)[:,None]
+            pred_lengths = predicted_bone_len.squeeze().cpu().numpy()
+    return pred_lengths
 
 
 def inference(model_valid, test_generator):

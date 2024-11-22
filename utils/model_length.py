@@ -19,8 +19,6 @@ class BoneLengthModel(torch.nn.Module):
             self.num_gru = 2
             self.gru = nn.GRU(self.embed_dim, self.hidden_size, self.num_layers, dropout=dropout if num_layers>1 else 0,
                             bidirectional=True, batch_first=True)
-            # self.gru = nn.LSTM(self.embed_dim, self.hidden_size, self.num_layers, dropout=dropout if num_layers>1 else 0,
-                            # bidirectional=True, batch_first=True)
         else:
             self.num_gru = 2
             gru = []

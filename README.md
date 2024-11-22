@@ -179,7 +179,27 @@ python train.py -arc 3,3,3,3,3 -t mix -bi --mix_model videopose_finetuned.bin --
 
 ## Visualization (Inference in the wild)
 
-TBA
+Our method relies on 2D-to-3D lifting models. Therefore, we provide two visualization approaches:
+- Visualizing the adjusted 3D poses based on the predicted 3D poses
+- Predicting 3D poses from video using our fine-tuned model, followed by visualizing the result
+
+### Predicted 3D poses
+
+First, you should predict 3D poses with any other 2D-to-3D lifting models and save it with shape (number of frames, 17, 3) in Human 3.6M format. Then you may visualize the adjusted result by the following command:
+
+```
+python inference.py --length_ckpt biGRU_all.bin -bi --video path/to/in_the_wild_video.mp4 --poses path/to/predicted_poses.npz
+```
+
+### Fine-tuned model
+
+Our fine-tuned model integrates the [VideoPose3D](https://github.com/facebookresearch/VideoPose3D) model and our adjustment process. you can visualize the result by the following command:
+
+```
+python inference.py --finetuned_ckpt videopose_finetuned.bin -bi --video path/to/in_the_wild_video.mp4
+```
+
+<p align="center"> <img src="./src/tennis_3D_pose.gif" width="80%"> </p>
 
 ## Acknowledgement
 

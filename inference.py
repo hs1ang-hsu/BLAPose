@@ -88,6 +88,7 @@ def inference(args):
         # load 3D poses
         # pred_pose.shape = (# of frames, 17, 3)
         pred_pose = np.load(args.poses)['poses']
+        pred_pose = camera_to_world(pred_pose, R=rot, t=0) # Comment this line if the poses are already in world coordinates
         pred_pose = torch.from_numpy(pred_pose)
     
         # adjust
